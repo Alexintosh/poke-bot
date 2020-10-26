@@ -1,0 +1,28 @@
+{
+  "name": "poke-bot",
+  "version": "0.0.1",
+  "description": "Node bot to poke weights",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Alexintosh/poke-bot.git"
+  },
+  "author": "Alessio Delmonti",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Alexintosh/poke-bot/issues"
+  },
+  "homepage": "https://github.com/Alexintosh/poke-bot#readme",
+  "dependencies": {
+    "@pie-dao/abis": "^1.0.0",
+    "bignumber.js": "^9.0.1",
+    "cross-env": "^7.0.2",
+    "dotenv": "^8.2.0",
+    "ethers": "^5.0.19",
+    "node-fetch": "^2.6.1",
+    "ws": "^7.3.1"
+  }
+}
