@@ -1,7 +1,6 @@
 const fetch = require('node-fetch');
 const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
 
-console.log('webhookUrl', webhookUrl)
 const discord = async (message) => {
   let msg = message;
   console.log(message);
