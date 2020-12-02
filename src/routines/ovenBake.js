@@ -1,77 +1,20 @@
-require('dotenv').config();
-const sound = require('sound-play')
-const ethers = require('ethers');
-const pieABI = require('./abis/pie.json');
-const ovenABI = require('./abis/oven.json');
-const recipeABI = require('./abis/recipe.json');
-const gasNow = require('./apis/gasnow');  
-const discord = require('./apis/discord');
 
-const provider = new ethers.providers.InfuraProvider("homestead", process.env.INFURA_KEY);
 
-let wallet = new ethers.Wallet(process.env.PRIVATE_KEY);
-    wallet = wallet.connect(provider);
+async function checkOven() {
+    let ovenAddress = `0x1d616dad84dd0b3ce83e5fe518e90617c7ae3915`;
+    
+    const balance = await provider.getBalance(ovenAddress) / 1e18;
 
-const ovens = [
-    {
-      addressOven: '0x1d616dad84dd0b3ce83e5fe518e90617c7ae3915',
-      deprecated: false,
-      name: 'DEFI++ Oven',
-      description: 'Bakes DEFI++ at Zero cost',
-      minimum: 10,
-      data: {
-        ethBalance: 0,
-        pieBalance: 0
-      },
-      baking: {
-          symbol: "DEFI++",
-          address: "0x8d1ce361eb68e9e05573443c407d4a3bed23b033",
-      },
-      highlight: true,
-      enabled: true,
-    },
-    {
-      addressOven: '0xE3d74Df89163A8fA1cBa540FF6B339d13D322F61',
-      deprecated: false,
-      minimum: 5,
-      name: 'BCP Oven',
-      description: 'Bakes BCP at Zero cost',
-      data: {
-        ethBalance: 0,
-        pieBalance: 0
-      },
-      baking: {
-          symbol: "BCP",
-          address: "0xe4f726adc8e89c6a6017f01eada77865db22da14",
-      },
-      highlight: true,
-      enabled: true,
-    }
-  ]
-
-async function run() {
-    ovens.forEach( ov => checkOven(ov));
-    console.log('\n\n')
-}
-
-async function checkOven(ov) {    
-    const balance = await provider.getBalance(ov.addressOven) / 1e18;
-
-    if(balance >= ov.minimum) {
-        console.log(`Balance ${ov.name}: ${balance}`);
+    if(balance > 10) {
+        console.log(`Balance ${ovenAddress}: ${balance}`);
         sound.play('src/hello.mp3');
-        await bake(
-            ov.addressOven,
-            3604155,
-            1,
-            6,
-            1,
-            ethers.utils.parseEther("0.1"),
-            false
-        );
+        await bake();
+        
     } else {
-        console.log(`${new Date()} Balance ${ov.name}: ${balance} ETH`)
+        console.log(`${new Date()} Balance: ${balance} ETH`)
     }
+
+
 }
 
 async function bake(
@@ -87,6 +30,7 @@ async function bake(
     let { utils } = ethers;
     let inputAmount = ethers.BigNumber.from("0")
 
+    //const oven = await ethers.getContractAt("Oven", oven_address);
     let oven = new ethers.Contract(oven_address, ovenABI, wallet);
     const pie_address = await oven.pie();
     const recipe_address = await oven.recipe();
@@ -133,12 +77,6 @@ async function bake(
     console.log("\n\nCalldata:\n\n", call)
 
     let gasPrices = await gasNow.fetchGasPrice();
-    console.log('gasPrices', gasPrices);
-    console.log('data', {
-        addresses,
-        outputAmount: outputAmount.toString(),
-        inputAmount: inputAmount.toString()
-    });
 
     if(execute) {
         const baketx = await oven.bake(
@@ -146,13 +84,13 @@ async function bake(
             outputAmount,
             inputAmount,
         {
-            gasLimit: 6000000,
-            gasPrice: gasPrices.fast
+            gasLimit: 5000000,
+            gasPrice: gasPrices.rapid
         })
          ` @ `;
          let message = `:pie:  **Baking in process** :pie:
     
-        The Oven is baking \`${outputAmount.toString()} ${ov.baking.symbol}\`
+        The Oven is baking \`${outputAmount.toString()} DEFI++\`
         https://etherscan.io/tx/${baketx.hash}`;
 
         await discord.notify(message)
@@ -160,8 +98,3 @@ async function bake(
     }
     
 }
-
-
-
-setInterval(function(){ run()}, process.env.INTERVAL || 60000)
-run();
