@@ -10,7 +10,10 @@ const discord = require('./apis/discord');
 const provider = new ethers.providers.InfuraProvider("homestead", process.env.INFURA_KEY);
 
 let wallet = new ethers.Wallet(process.env.PRIVATE_KEY);
+console.log('PRIVATE_KEY', process.env.PRIVATE_KEY)
     wallet = wallet.connect(provider);
+
+console.log('wallet', wallet.getAddress())    
 
 const ovens = [
     {
@@ -18,7 +21,7 @@ const ovens = [
       deprecated: false,
       name: 'DEFI++ Oven',
       description: 'Bakes DEFI++ at Zero cost',
-      minimum: 10,
+      minimum: 7,
       data: {
         ethBalance: 0,
         pieBalance: 0
@@ -67,7 +70,7 @@ async function checkOven(ov) {
             6,
             1,
             ethers.utils.parseEther("0.1"),
-            false
+            true
         );
     } else {
         console.log(`${new Date()} Balance ${ov.name}: ${balance} ETH`)
@@ -81,7 +84,7 @@ async function bake(
     max_addresses = 6, 
     min_addresses = 1,
     minAmount = ethers.utils.parseEther("0.1"), // Min amount to be considered for baking
-    execute = false
+    execute = true
 ) {
     let addresses = []
     let { utils } = ethers;
@@ -133,27 +136,26 @@ async function bake(
     console.log("\n\nCalldata:\n\n", call)
 
     let gasPrices = await gasNow.fetchGasPrice();
-    console.log('gasPrices', gasPrices);
-    console.log('data', {
-        addresses,
-        outputAmount: outputAmount.toString(),
-        inputAmount: inputAmount.toString()
-    });
+    // console.log('gasPrices', gasPrices);
+    // console.log('data', oven.bake.toString(), {
+    //     addresses,
+    //     outputAmount: outputAmount.toString(),
+    //     inputAmount: inputAmount.toString()
+    // });
 
     if(execute) {
-        const baketx = await oven.bake(
+        const baketx = await oven["bake(address[],uint256,uint256)"](
             addresses,
             outputAmount,
             inputAmount,
         {
-            gasLimit: 6000000,
-            gasPrice: gasPrices.fast
-        })
-         ` @ `;
-         let message = `:pie:  **Baking in process** :pie:
+            gasLimit: 6000000
+        });
+
+        let message = `:pie:  **Baking in process** :pie:
     
-        The Oven is baking \`${outputAmount.toString()} ${ov.baking.symbol}\`
-        https://etherscan.io/tx/${baketx.hash}`;
+The Oven is baking \`${outputAmount.toString()} ${ov.baking.symbol}\`
+https://etherscan.io/tx/${baketx.hash}`;
 
         await discord.notify(message)
         console.log(message)
