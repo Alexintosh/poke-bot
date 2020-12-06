@@ -21,7 +21,7 @@ const ovens = [
       deprecated: false,
       name: 'DEFI++ Oven',
       description: 'Bakes DEFI++ at Zero cost',
-      minimum: 7,
+      minimum: 10,
       data: {
         ethBalance: 0,
         pieBalance: 0
@@ -36,7 +36,7 @@ const ovens = [
     {
       addressOven: '0xE3d74Df89163A8fA1cBa540FF6B339d13D322F61',
       deprecated: false,
-      minimum: 5,
+      minimum: 10,
       name: 'BCP Oven',
       description: 'Bakes BCP at Zero cost',
       data: {
@@ -52,6 +52,8 @@ const ovens = [
     }
   ]
 
+const MaxETHTranche = ethers.utils.parseEther("30");
+
 async function run() {
     ovens.forEach( ov => checkOven(ov));
     console.log('\n\n')
@@ -62,15 +64,16 @@ async function checkOven(ov) {
 
     if(balance >= ov.minimum) {
         console.log(`Balance ${ov.name}: ${balance}`);
-        sound.play('src/hello.mp3');
+        //sound.play('src/hello.mp3');
         await bake(
             ov.addressOven,
             3604155,
-            1,
-            6,
-            1,
-            ethers.utils.parseEther("0.1"),
-            true
+            3, //Slippage
+            6, //max_addresses
+            1, //min_addresses
+            ethers.utils.parseEther("0.1"), //minAmount
+            true, //execute
+            ov.baking.symbol
         );
     } else {
         console.log(`${new Date()} Balance ${ov.name}: ${balance} ETH`)
@@ -80,11 +83,12 @@ async function checkOven(ov) {
 async function bake(
     oven_address = '0x1d616dad84dd0b3ce83e5fe518e90617c7ae3915',
     start_block = 3604155,
-    slippage = 1,
+    slippage = 3,
     max_addresses = 6, 
     min_addresses = 1,
     minAmount = ethers.utils.parseEther("0.1"), // Min amount to be considered for baking
-    execute = true
+    execute = false,
+    symbol
 ) {
     let addresses = []
     let { utils } = ethers;
@@ -111,24 +115,36 @@ async function bake(
         }
         console.log("Adding", user, "(", balance.toString(), ")...")
         addresses.push(user)
+
         inputAmount = inputAmount.add(ethers.BigNumber.from(balance))
+
+        if (inputAmount.gt(MaxETHTranche)) {
+            inputAmount = MaxETHTranche;
+            break;
+        }
 
         if (addresses.length >= max_addresses) {
             console.log("Max addressess reached, continuing..")
             break
         }
     }
+
     if (addresses.length < min_addresses) {
         console.log(`Addressess is less than min_addresses`);
         return;
         //throw new Error("Addressess is less than min_addresses")
     }
+
     console.log("~Done getting addresses~\n")
     console.log("Calculating output amount...")
-    const etherJoinAmount = await recipe.calcToPie(pie_address, utils.parseEther("1"));
-    const outputAmount =  inputAmount.mul(utils.parseEther("1")).div(etherJoinAmount).div(100).mul(100-slippage);
-    console.log("Swapping", inputAmount.toString(), "for", outputAmount.toString())
 
+    let calculateFor = utils.parseEther("1");
+
+    const etherJoinAmount = await recipe.calcToPie(pie_address, calculateFor);
+    const outputAmount =  inputAmount.mul(calculateFor).div(etherJoinAmount).div(100).mul(100-slippage);
+
+    
+    console.log("Swapping", inputAmount.toString(), "for", outputAmount.toString())
     console.log("Start baking...")
 
     const call = oven.interface.encodeFunctionData("bake", [addresses, outputAmount, inputAmount])
@@ -137,24 +153,36 @@ async function bake(
 
     let gasPrices = await gasNow.fetchGasPrice();
     // console.log('gasPrices', gasPrices);
-    // console.log('data', oven.bake.toString(), {
-    //     addresses,
-    //     outputAmount: outputAmount.toString(),
-    //     inputAmount: inputAmount.toString()
-    // });
+
+    let overrides = {
+        gasLimit: 6000000
+    };
+
+    if(gasPrices.fast) {
+        overrides.gasPrice = gasPrices.fast;
+    }
+
+    console.log('data', {
+        addresses,
+        outputAmount: outputAmount.toString(),
+        maxPrice: inputAmount.toString(),
+        gasPrices,
+        overrides
+    });
 
     if(execute) {
         const baketx = await oven["bake(address[],uint256,uint256)"](
             addresses,
             outputAmount,
             inputAmount,
-        {
-            gasLimit: 6000000
-        });
+            overrides
+        );
+
+        console.log('baketx', baketx);
 
         let message = `:pie:  **Baking in process** :pie:
     
-The Oven is baking \`${outputAmount.toString()} ${ov.baking.symbol}\`
+The Oven is baking \`${outputAmount/1e18} ${symbol}\`
 https://etherscan.io/tx/${baketx.hash}`;
 
         await discord.notify(message)
@@ -164,6 +192,5 @@ https://etherscan.io/tx/${baketx.hash}`;
 }
 
 
-
-setInterval(function(){ run()}, process.env.INTERVAL || 60000)
+setInterval(function(){ run()}, process.env.INTERVAL || 210000)
 run();
