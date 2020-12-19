@@ -49,14 +49,34 @@ const ovens = [
       },
       highlight: true,
       enabled: true,
-    }
+    },
+    {
+        addressOven: '0x925f860d1596cc6383c16294d8290f82bde172f7',
+        deprecated: false,
+        minimum: 10,
+        name: 'YPIE Oven',
+        description: 'Bakes YPIE at Zero cost',
+        data: {
+          ethBalance: 0,
+          pieBalance: 0
+        },
+        baking: {
+            symbol: "YPIE",
+            address: "0x17525e4f4af59fbc29551bc4ece6ab60ed49ce31"
+        },
+        highlight: true,
+        enabled: true,
+      }
   ]
 
 const MaxETHTranche = ethers.utils.parseEther("30");
 
 async function run() {
 
-    ovens.forEach( ov => checkOven(ov));
+    let gasPrices = await gasNow.fetchGasPrice();
+    console.log('gasPrices', gasPrices);
+    if(gasPrices.fast < 80000000000)
+        ovens.forEach( ov => checkOven(ov));
     
     
     console.log('\n\n')
@@ -68,16 +88,18 @@ async function checkOven(ov) {
     if(balance >= ov.minimum) {
         console.log(`Balance ${ov.name}: ${balance}`);
         //sound.play('src/hello.mp3');
-        await bake(
-            ov.addressOven,
-            3604155,
-            3, //Slippage
-            10, //max_addresses
-            1, //min_addresses
-            ethers.utils.parseEther("0.01"), // minAmount
-            true, //execute
-            ov.baking.symbol
-        );
+        if(!ov.deprecated) {
+            await bake(
+                ov.addressOven,
+                3604155,
+                3, //Slippage
+                10, //max_addresses
+                1, //min_addresses
+                ethers.utils.parseEther("0.01"), // minAmount
+                true, //execute
+                ov.baking.symbol
+            );
+        }
     } else {
         console.log(`${new Date()} Balance ${ov.name}: ${balance} ETH`)
     }
@@ -159,11 +181,11 @@ async function bake(
         // console.log('gasPrices', gasPrices);
 
         let overrides = {
-            gasLimit: 6000000
+            gasLimit: 7000000
         };
 
         if(gasPrices.fast) {
-            overrides.gasPrice = gasPrices.rapid;
+            overrides.gasPrice = gasPrices.fast;
         }
 
         console.log('data', {
