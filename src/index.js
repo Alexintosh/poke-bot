@@ -51,7 +51,7 @@ const ovens = [
       enabled: true,
     },
     {
-        addressOven: '0x925f860d1596cc6383c16294d8290f82bde172f7',
+        addressOven: '0xAedec86DeDe3DEd9562FB00AdA623c0e9bEEb951',
         deprecated: false,
         minimum: 10,
         name: 'YPIE Oven',
