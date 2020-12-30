@@ -73,10 +73,15 @@ const MaxETHTranche = ethers.utils.parseEther("30");
 
 async function run() {
 
-    let gasPrices = await gasNow.fetchGasPrice();
-    console.log('gasPrices', gasPrices);
-    if(gasPrices.fast < 80000000000)
-        ovens.forEach( ov => checkOven(ov));
+    try {
+        let gasPrices = await gasNow.fetchGasPrice();
+        console.log('gasPrices', gasPrices);
+        if(gasPrices.fast < 100000000000)
+            ovens.forEach( ov => checkOven(ov));
+    } catch (e) {
+        console.log(e.message)
+    }
+    
     
     
     console.log('\n\n')
