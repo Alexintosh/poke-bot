@@ -4,12 +4,12 @@ const Table = require('cli-table2');
 const pieABI = require('../abis/pie.json');
 const erc20ABI = require('../abis/erc20.json');
 const provider = require('../wallet').provider;
-const alertThreshold = BigNumber(process.env.TOKEN_SUPPLY_ALERT_THRESHOLD || '0.1');
 
 
 class TokenSupplyCheck {
-  constructor(address) {
+  constructor(address, alertThreshold = '0.1') {
     this.address = address;
+    this.alertThreshold = BigNumber(alertThreshold);
   }
 
   async init() {
@@ -39,12 +39,9 @@ class TokenSupplyCheck {
     
     this.diffs.forEach((diff, index) => {
       const percentageShift = diff.dividedBy(this.supplyes[index]);
-      if (alertThreshold.isLessThan(percentageShift)) {
+      if (this.alertThreshold.isLessThan(percentageShift)) {
         const message = `${this.tokens[index].toString()} shift exceeds alert threshold`;
         console.log(message);
-      }
-      if (!diff.isZero()) {
-        console.log('diff');
       }
       shifts[this.tokens[index]] = `${percentageShift.multipliedBy(100).toFixed(2)}%`;
     });
@@ -65,16 +62,12 @@ class TokenSupplyCheck {
     }));
   
     const table1 = new Table({ style: { head: [], border: [] } });
-    const table2 = new Table({ style: { head: [], border: [] } });
     table1.push(['Symbol', 'Token', 'Change', 'Supply']);
-    table2.push(['Symbol', 'Token', 'Change', 'Supply']);
     payload.forEach((record, index) => {
       table1.push(record);
-      if (!this.diffs[index].isZero()) {
-        table2.push(record);
-      }
     });
   
+    console.log(`\n\n ------- ${this.address} ------- \n\n`)
     console.log(table1.toString());
   }
 }

@@ -13,10 +13,13 @@ const pies = [
 let repo = [];
 
 async function main() {
-    for (const check of repo) {
-        await check.run();
+    if(!isReady) {
+        console.log('Bot not ready!');
+        return;
     }
-    // runOvenCheck();
+
+    repo.forEach( check => check.run() );
+    //runOvenCheck();
 }
 
 async function setup() {
@@ -28,5 +31,5 @@ async function setup() {
     isReady = true;
     
 }
-setInterval(function(){ main()}, 6000)
+setInterval(function(){ main()}, 12000)
 setup();
