@@ -57,6 +57,12 @@ async function setup() {
 
     isReady = true;    
     console.log(`${chalk.green(emoji.get('check_mark_button') + ' All gucci, bot is ready')} \n\n`);
+
+    if(process.env.RUN_OVEN_CHECKS) {
+        runOvenCheck();
+    }
+
+    
 }
 
 setup();

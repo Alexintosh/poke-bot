@@ -30,7 +30,7 @@ const ovens = [
     {
       addressOven: '0xE3d74Df89163A8fA1cBa540FF6B339d13D322F61',
       deprecated: false,
-      minimum: 10,
+      minimum: 1,
       name: 'BCP Oven',
       description: 'Bakes BCP at Zero cost',
       data: {
@@ -68,7 +68,6 @@ async function checkOven(ov) {
 
     if(balance >= ov.minimum) {
         console.log(`Balance ${ov.name}: ${balance} ETH`);
-        sound.play('src/hello.mp3');
 
         let gasPrices = await gasNow.fetchGasPrice();
         const table1 = new Table({ style: { head: [], border: [] } });
@@ -80,9 +79,9 @@ async function checkOven(ov) {
                 ov.addressOven,
                 3604155,
                 3, //Slippage
-                10, //max_addresses
+                20, //max_addresses
                 1, //min_addresses
-                ethers.utils.parseEther("0.01"), // minAmount
+                ethers.utils.parseEther("0.1"), // minAmount
                 true, //execute
                 ov.baking.symbol
             );
