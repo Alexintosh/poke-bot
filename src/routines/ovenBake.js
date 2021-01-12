@@ -30,7 +30,7 @@ const ovens = [
     {
       addressOven: '0xE3d74Df89163A8fA1cBa540FF6B339d13D322F61',
       deprecated: false,
-      minimum: 1,
+      minimum: 10,
       name: 'BCP Oven',
       description: 'Bakes BCP at Zero cost',
       data: {
