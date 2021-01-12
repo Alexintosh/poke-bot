@@ -1,4 +1,5 @@
 const ethers = require('ethers');
+const Table = require('cli-table2');
 const ovenABI = require('../abis/oven.json');
 const recipeABI = require('../abis/recipe.json');
 const gasNow = require('../apis/gasnow');  
@@ -44,7 +45,7 @@ const ovens = [
       enabled: true,
     },
     {
-        addressOven: '0x925f860d1596cc6383c16294d8290f82bde172f7',
+        addressOven: '0xAedec86DeDe3DEd9562FB00AdA623c0e9bEEb951',
         deprecated: false,
         minimum: 10,
         name: 'YPIE Oven',
@@ -66,19 +67,27 @@ async function checkOven(ov) {
     const balance = await provider.getBalance(ov.addressOven) / 1e18;
 
     if(balance >= ov.minimum) {
-        console.log(`Balance ${ov.name}: ${balance}`);
-        //sound.play('src/hello.mp3');
-        if(!ov.deprecated) {
-            // await bake(
-            //     ov.addressOven,
-            //     3604155,
-            //     3, //Slippage
-            //     10, //max_addresses
-            //     1, //min_addresses
-            //     ethers.utils.parseEther("0.01"), // minAmount
-            //     true, //execute
-            //     ov.baking.symbol
-            // );
+        console.log(`Balance ${ov.name}: ${balance} ETH`);
+        sound.play('src/hello.mp3');
+
+        let gasPrices = await gasNow.fetchGasPrice();
+        const table1 = new Table({ style: { head: [], border: [] } });
+        table1.push(['Rapid', 'Fast', 'Standard', 'Timestamp']);
+        table1.push([gasPrices.rapid, gasPrices.fast, gasPrices.standard, gasPrices.timestamp]);
+        console.log(table1.toString())
+        if(gasPrices.fast < 80000000000 && !ov.deprecated) {
+            await bake(
+                ov.addressOven,
+                3604155,
+                3, //Slippage
+                10, //max_addresses
+                1, //min_addresses
+                ethers.utils.parseEther("0.01"), // minAmount
+                true, //execute
+                ov.baking.symbol
+            );
+        } else {
+            console.log('\n Gas price too high, checking again in a bit.\n')
         }
     } else {
         console.log(`${new Date()} Balance ${ov.name}: ${balance} ETH`)
@@ -202,13 +211,11 @@ async function bake(
 }
 
 async function run() {
-
-    let gasPrices = await gasNow.fetchGasPrice();
-    console.log('gasPrices', gasPrices);
-    if(gasPrices.fast < 80000000000)
+    try {
         ovens.forEach( ov => checkOven(ov));
-    
-    
+    } catch(e) {
+        console.log(e.message);
+    }
     console.log('\n\n')
 }
 
