@@ -198,7 +198,6 @@ async function bake(
         console.log("Start baking...")
 
         const call = oven.interface.encodeFunctionData("bake", [addresses, outputAmount, inputAmount])
-
         if(verbose)
             console.log("\n\nCalldata:\n\n", call)
 
@@ -252,7 +251,7 @@ async function bake(
                 console.log(`${chalk.red(`${emoji.get('cross_mark')} ${baketx.hash} failed`)}`);
             }
             txInProgress[oven_address] = false;
-            
+           
         }
 
     } catch (e) {

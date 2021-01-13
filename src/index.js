@@ -67,7 +67,6 @@ vorpal
  * Setup function
  */
 async function setup() {
-
     console.log(`${chalk.white.bgMagenta(emoji.get('robot') + ' Welcome to the Kitchen Bot ' + emoji.get('robot'))} \n\n`);
 
     if(process.env.RUN_SUPPLY_CHECKS === "true") {

@@ -48,7 +48,6 @@ class Scheduler {
         console.log(this.jobs[name].getStatus());
     }
 
-    getStatus
 
     stop(name = "") {
         if(!this.jobs[name]) {
