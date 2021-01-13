@@ -22,12 +22,41 @@ const Every = {
 
 class Scheduler {
     constructor() {
-        this.jobs = [];
+        this.jobs = {};
     }
 
     add(timeframe, cb, name = "") {
         let job = cron.schedule(timeframe, cb);
-        this.jobs.push(job);
+        this.jobs[name] = job;
+    }
+
+    start(name = "") {
+        if(!this.jobs[name]) {
+            console.log(`Job: ${name} dosn't exist, use add first`);
+            return;
+        }
+        this.jobs[name].start();
+        console.log(`Job: ${name} started`)
+    }
+
+    status(name = "") {
+        if(!this.jobs[name]) {
+            console.log(`Job: ${name} dosn't exist, use add first`);
+            return;
+        }
+        
+        console.log(this.jobs[name].getStatus());
+    }
+
+    getStatus
+
+    stop(name = "") {
+        if(!this.jobs[name]) {
+            console.log(`Job: ${name} dosn't exist, use add first`);
+            return;
+        }
+        this.jobs[name].stop();
+        console.log(`Job: ${name} stopped`)
     }
 }
 
